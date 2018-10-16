@@ -1,0 +1,69 @@
+o<g29> sub
+(PROBEOPEN deltaCalibrate.txt)
+(Radius sets the distance from 0,0 we want to probe)
+F1000
+G21
+G1 G54
+#3998 = #<P> ( User Defined Tolerance )
+#2 = #<F> (Non Probe Move speed)
+#3 = #<E> (Probing Feed Rate)
+#4 = 10   (Safe Z Height Value Default Value)
+#5 = -15   ( Z Value used to as target for probe moves)
+#6 = -15
+#<TowerC_Probe_Val> = 0 
+#<TowerA_Probe_Val> = 0
+#<TowerB_Probe_Val> = 0
+#<radius> = #<Q>
+(This section Calculates the three positions to probe based on a radius)
+#<X1> = 0
+#<Y1> = #<radius>
+#<X2> = [-1 * [#<radius> * [SIN[120]]]]
+#<Y2> = [1 * [#<radius> * [COS[120]]]]
+#<X3> = [-1 * [#<radius>  * [SIN[240]]]]
+#<Y3> = [1 * [#<radius> * [COS[240]]]]
+(Set Feed Rate from O Call)
+#<FeedRate> = #2
+(Set Probing Feed Rate from O Call)
+#<ProbeFeed> = #3
+#<ZSafe> = #4
+(Set arbitray Z target for Probing from O Call)
+#<ZProbeTarget>= #5
+(Set Feedrate)
+F#<FeedRate>
+(Set Absolute)
+G90
+G0 X0 Y0
+G38.2 Z[#6] ( Initial Probe to find Bed Z level)
+#3999 = #5063  ( Save Center Z val for later caculations)
+#<ZSafe> = [#5063 + 20]
+#<ZProbeTarget> = #5([5 - #5063])
+G0 X[#<X1>] Y[#<Y1>] Z[#<Zsafe>]
+F[#<ProbeFeed>]
+G38.2 Z[#<ZProbeTarget>](Probe first Tower)
+(Save Recorded Point To Something We can Read)
+#<TowerC_Probe_Val> = #5063
+F[#<FeedRate>]
+(First Probe Complete)
+(Move To Second Location)
+G0 X[#<X2>] Y[#<Y2>] Z[#<ZSafe>]
+F[#<ProbeFeed>]
+G38.2 Z[#<ZProbeTarget>](Probe Second Tower)
+(Save Recorded Point To Something We can Read)
+#<TowerA_Probe_Val> = #5063
+F[#<FeedRate>]
+(Second Probe Complete)
+(Move To Third Location)
+G0 X[#<X3>] Y[#<Y3>] Z[#<ZSafe>]
+F[#<ProbeFeed>]
+G38.2 Z[#<ZProbeTarget>](Probe Third Tower)
+(Save Recorded Point To Something We can Read)
+#<TowerB_Probe_Val> = #5063
+#4000 = #<TowerC_Probe_Val> (Move Tower Values to Global Vars)
+#4001 = #<TowerA_Probe_Val> 
+#4002 = #<TowerB_Probe_Val> 
+F[#<FeedRate>]
+G0 X0 Y0 Z[#<ZSafe>]
+(Third Probe Complete)
+(msg, Probing Complete)
+(PROBECLOSE)
+o<g29> endsub

@@ -17,6 +17,8 @@ rt.init_RTAPI()
 c.load_ini(os.environ['INI_FILE_NAME'])
 
 motion.setup_motion('lineardeltakins')
+hal.Pin('lineardeltakins.R').set(c.find('MACHINE', 'DELTA_R'))
+hal.Pin('lineardeltakins.L').set(c.find('MACHINE', 'CF_ROD'))
 hardware.init_hardware()
 storage.init_storage('storage.ini')
 

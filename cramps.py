@@ -89,19 +89,19 @@ def setup_hardware(thread):
     #hal.Pin('bb_gpio.p9.in-13').link('limit-2-max')    # Z
     # GPIO fixed for faulty x and y max connection
     hal.Pin('bb_gpio.p8.in-07').link('limit-0-min')    # X
-    hal.Pin('bb_gpio.p8.in-08').link('limit-0-home')    # X
+    hal.Pin('bb_gpio.p8.in-08').link('limit-0-home')   # X
     hal.Pin('bb_gpio.p8.in-09').link('limit-1-min')    # Y
-    hal.Pin('bb_gpio.p8.in-10').link('limit-1-home')    # Y
-    hal.Pin('bb_gpio.p9.in-13').link('limit-2-min')    # Z
-    hal.Pin('bb_gpio.p9.in-11').link('limit-2-home')    # Z
+    hal.Pin('bb_gpio.p8.in-10').link('limit-1-home')   # Y
+    hal.Pin('bb_gpio.p9.in-11').link('limit-2-home')   # Z
     # probe ...
+    hal.Pin('bb_gpio.p9.in-13').link('probe-signal') 
 
     # Adjust as needed for your switch polarity
     hal.Pin('bb_gpio.p8.in-08.invert').set(True)
     hal.Pin('bb_gpio.p8.in-07.invert').set(False)
     hal.Pin('bb_gpio.p8.in-10.invert').set(True)
     hal.Pin('bb_gpio.p8.in-09.invert').set(False)
-    hal.Pin('bb_gpio.p9.in-13.invert').set(True)
+    hal.Pin('bb_gpio.p9.in-13.invert').set(False)
     hal.Pin('bb_gpio.p9.in-11.invert').set(True)
 
     # ADC

@@ -275,28 +275,28 @@ newsig limit-z-min bit
 newsig limit-z-max bit
 
 #ORIGINAL SETTINGS
-net limit-x-min <= bb_gpio.p8.in-08
-net limit-x-max <= bb_gpio.p8.in-07
-net limit-y-min <= bb_gpio.p8.in-10
-net limit-y-max <= bb_gpio.p8.in-09
-#net limit-z-min <= bb_gpio.p9.in-13
-net limit-z-max <= bb_gpio.p9.in-11
-
-#FIXED SETTINGS FOR WIERD X AND Y MAX PIN BEHAIVIOUR
-#net limit-x-min <= bb_gpio.p8.in-07
-#net limit-x-max <= bb_gpio.p8.in-08
-#net limit-y-min <= bb_gpio.p8.in-09
-#net limit-y-max <= bb_gpio.p8.in-10
+#net limit-x-min <= bb_gpio.p8.in-08
+#net limit-x-max <= bb_gpio.p8.in-07
+#net limit-y-min <= bb_gpio.p8.in-10
+#net limit-y-max <= bb_gpio.p8.in-09
 ##net limit-z-min <= bb_gpio.p9.in-13
 #net limit-z-max <= bb_gpio.p9.in-11
 
+#FIXED SETTINGS FOR WIERD X AND Y MAX PIN BEHAIVIOUR
+net limit-x-min <= bb_gpio.p8.in-07
+net limit-x-max <= bb_gpio.p8.in-08
+net limit-y-min <= bb_gpio.p8.in-09
+net limit-y-max <= bb_gpio.p8.in-10
+#net limit-z-min <= bb_gpio.p9.in-13
+net limit-z-max <= bb_gpio.p9.in-11
+
 # Adjust as needed for your switch polarity
-setp bb_gpio.p8.in-08.invert 0
+setp bb_gpio.p8.in-08.invert 1
 setp bb_gpio.p8.in-07.invert 0
-setp bb_gpio.p8.in-10.invert 0
+setp bb_gpio.p8.in-10.invert 1
 setp bb_gpio.p8.in-09.invert 0
 setp bb_gpio.p9.in-13.invert 0
-setp bb_gpio.p9.in-11.invert 0
+setp bb_gpio.p9.in-11.invert 1
 
 
 # Uncomment if you actually have limit switches setup
@@ -362,6 +362,27 @@ newsig e0.temp.meas  float
 newsig hbp.temp.set  float
 newsig hbp.temp.meas float
 
+newcomp fdm-e0 timer=100
+newpin  fdm-e0 fdm-e0.temp.meas      float in
+newpin  fdm-e0 fdm-e0.temp.set       float io
+newpin  fdm-e0 fdm-e0.temp.standby   float in
+newpin  fdm-e0 fdm-e0.temp.limit.min float in
+newpin  fdm-e0 fdm-e0.temp.limit.max float in
+newpin  fdm-e0 fdm-e0.temp.in-range  bit   in
+newpin  fdm-e0 fdm-e0.error          bit   in
+newpin  fdm-e0 fdm-e0.active         bit   in
+ready   fdm-e0
+
+newcomp fdm-hbp timer=100
+newpin  fdm-hbp fdm-hbp.temp.meas      float in
+newpin  fdm-hbp fdm-hbp.temp.set       float io
+newpin  fdm-hbp fdm-hbp.temp.standby   float in
+newpin  fdm-hbp fdm-hbp.temp.limit.min float in
+newpin  fdm-hbp fdm-hbp.temp.limit.max float in
+newpin  fdm-hbp fdm-hbp.temp.in-range  bit   in
+newpin  fdm-hbp fdm-hbp.error          bit   in
+newpin  fdm-hbp fdm-hbp.active         bit   in
+ready   fdm-hbp
 
 setp hpg.pwmgen.00.pwm_period       10000000
 
@@ -371,12 +392,12 @@ setp hpg.pwmgen.00.out.00.enable    1
 setp hpg.pwmgen.00.out.00.value     0.0
 
 # E0 Heater FET 2
-setp hpg.pwmgen.00.out.01.pin       80
+setp hpg.pwmgen.00.out.01.pin       147
 setp hpg.pwmgen.00.out.01.enable    1
 setp hpg.pwmgen.00.out.01.value     0.0
 
 # E1 Heater FET 3
-setp hpg.pwmgen.00.out.02.pin       147
+setp hpg.pwmgen.00.out.02.pin       80
 setp hpg.pwmgen.00.out.02.enable    1
 setp hpg.pwmgen.00.out.02.value     0.0
 
@@ -396,22 +417,41 @@ setp hpg.pwmgen.00.out.05.pin       34
 setp hpg.pwmgen.00.out.05.enable    1
 setp hpg.pwmgen.00.out.05.value     0.0
 setp hpg.pwmgen.00.out.05.scale     255.0
-newsig fan.speed.set float
-net fan.speed.set <= motion.analog-out-00
-net fan.speed.set => hpg.pwmgen.00.out.05.value 
+newsig f0.speed.set  float
+net f0.speed.set <= motion.analog-out-01
+net f0.speed.set => hpg.pwmgen.00.out.05.value 
+
+
+# HAL Remote Cmponent
+newcomp fdm-f0 timer=100
+newpin  fdm-f0 fdm-f0.set float io
+ready   fdm-f0
  
 
 # PID for Extruder 0 temperature control
 net e0.temp.meas    <= Therm.ch-04.value
 net e0.temp.meas    => pid.0.feedback
 
+
 sets e0.temp.set  0
 net e0.temp.set     => pid.0.command
+
 
 net e0.heater  <= pid.0.output
 net e0.heater  => limit1.0.in
 net e0.heaterl <= limit1.0.out
 net e0.heaterl => hpg.pwmgen.00.out.01.value
+
+net e0.temp.meas fdm-e0.temp.meas  
+#net e0.temp.set  fdm-e0.temp.set       
+net e0.temp.set <=  motion.analog-out-02       
+
+
+setp fdm-e0.temp.standby   [EXTRUDER_0]TEMP_STANDBY
+setp fdm-e0.temp.limit.min [EXTRUDER_0]TEMP_LIMIT_MIN
+setp fdm-e0.temp.limit.max [EXTRUDER_0]TEMP_LIMIT_MAX
+#setp fdm-e0.temp.in-range  [EXTRUDER_0]
+#setp fdm-e0.error          [EXTRUDER_0]PID_MAXERRORI
 
 # Limit heater PWM to positive values
 # PWM mimics hm2 implementation, which generates output for negative values
@@ -428,6 +468,14 @@ net hbp.heater  <= pid.1.output
 net hbp.heater  => limit1.1.in
 net hbp.heaterl <= limit1.1.out
 net hbp.heaterl => hpg.pwmgen.00.out.00.value
+
+net hbp.temp.meas fdm-hbp.temp.meas  
+#net hbp.temp.set  fdm-hbp.temp.set       
+net hbp.temp.set <=  motion.analog-out-00       
+
+setp fdm-hbp.temp.standby   [HBP]TEMP_STANDBY
+setp fdm-hbp.temp.limit.min [HBP]TEMP_LIMIT_MIN
+setp fdm-hbp.temp.limit.max [HBP]TEMP_LIMIT_MAX
 
 # Limit heater PWM to positive values
 # PWM mimics hm2 implementation, which generates output for negative values
@@ -456,3 +504,19 @@ setp pid.1.maxerrorI 1.0
 setp pid.1.bias    0.5
 setp pid.1.enable   1
 
+newcomp storage timer=100 
+newpin storage ve-retract-vel-e0 float in
+newpin storage ve-retract-len-e0 float in
+newpin storage ve-filament-dia-e0 float in
+newpin storage ve-jog-velocity-e0 float in
+newpin storage ve-extrude-scale-e0 float in
+ready storage
+
+setp ve-retract-vel-e0   [EXTRUDER_0]RETRACT_VEL
+setp ve-retract-len-e0   [EXTRUDER_0]RETRACT_LEN
+setp ve-filament-dia-e0  [EXTRUDER_0]FILAMENT_DIA
+setp ve-jog-velocity-e0  [AXIS_3]MAX_VELOCITY
+setp ve-extrude-scale-e0 [EXTRUDER_0]EXTRUDE_SCALE
+
+# start haltalk server
+loadusr -W haltalk
